@@ -1,0 +1,72 @@
+import pandas as pd
+file_path = "telecom.csv"
+data = pd.read_csv(file_path)
+# 1 Вивести інформацію про набір даних
+print("\nІнформація про набір даних:")
+data.info()
+# зберегти назви стовпців у окрему змінну і вивести її
+column_names = data.columns.tolist()
+print("\nНазви стовпців:", column_names)
+# вивести кількість клієнтів з різних штатів
+state_counts = data['state'].value_counts()
+print("\nКількість клієнтів у різних штатах:")
+print(state_counts)
+# вивести дані випадкового лояльного клієнта, у якого підключено роумінг
+# і кількість міжнародних дзвінків не менше 3
+loyal_roaming_clients = data[(data['churn'] == False) &
+(data['international plan'] == 'yes') &
+(data['total intl calls'] >= 3)]
+random_client = loyal_roaming_clients.sample(1, random_state=42)
+print("\nДані випадкового лояльного клієнта:")
+print(random_client)
+# додати новий рядок до DataFrame з довільними даними
+new_row = pd.DataFrame([{
+'state': 'XX', 'account length': 100, 'area code': 415, 'phone number':
+'000-0000',
+'international plan': 'no', 'voice mail plan': 'no', 'number vmail
+messages': 0,
+'total day minutes': 200.0, 'total day calls': 100, 'total day charge':
+20.0,
+'total eve minutes': 150.0, 'total eve calls': 90, 'total eve charge':
+15.0,
+'total night minutes': 180.0, 'total night calls': 80, 'total night
+charge': 18.0,
+'total intl minutes': 10.0, 'total intl calls': 5, 'total intl charge':
+2.7,
+'customer service calls': 1, 'churn': False
+}])
+data = pd.concat([data, new_row], ignore_index=True)
+print("\nНовий рядок додано")
+print(data.tail())
+# знайти максимальну тривалість міжнародних розмов для клієнтів з
+міжнародним планом та без
+intl_max = data.groupby('international plan')['total intl minutes'].max()
+print("\nМаксимальна тривалість міжнародних розмов:")
+print(intl_max)
+# додати новий стовпець, який містить середні витрати на дзвінки у денний
+час для даного телефонного коду
+data['avg day charge by area'] = data.groupby('area code')['total day
+charge'].transform('mean')
+print("\nНовий стовпець із середніми витратами додано")
+print(data[['area code', 'avg day charge by area']].head())
+# вивести дані клієнтів лише для тих телефонних кодів, для яких максимальна
+кількість повідомлень голосової пошти < 50
+filtered_data = data.groupby('area code').filter(lambda x: x['number vmail
+messages'].max() < 50)
+print("\nФільтровані дані за телефонними кодами:")
+print(filtered_data)
+# середню кількість хвилин у денний та нічний час для лояльних та нелояльних
+клієнтів з різними телефонними кодами.
+# Зберегти у окрему змінну середню кількість хвилин у денний час лояльних
+клієнтів з кодом 415
+pivot_table = data.pivot_table(values=['total day minutes', 'total night
+minutes'],
+index='area code', columns='churn',
+aggfunc='mean')
+print("-----------------")
+print(pivot_table)
+print("-----------------")
+loyal_day_minutes_415 = pivot_table.loc[415, ('total day minutes', False)]
+print("\nСередня кількість хвилин у денний час для лояльних клієнтів з кодом
+415:", loyal_day_minutes_415)
+#data.to_csv("telecom.csv", index=False)
