@@ -1,0 +1,61 @@
+import pandas as pd
+import scipy.stats as stats
+df = pd.read_csv('Crime.csv')
+# 1
+north_education_past = df[df["Southern"] == 0]["Education"].mean()
+north_education_now = df[df["Southern"] == 0]["Education10"].mean()
+print(f"Середня кількість років навчання в північних штатах (10 років тому):
+{north_education_past}")
+print(f"Середня кількість років навчання в північних штатах (зараз):
+{north_education_now}")
+if north_education_now > north_education_past:
+print("Висновок: Освіта в північних штатах покращилася за 10 років.")
+else:
+print("Висновок: Освіта в північних штатах не покращилася або залишилася
+на тому ж рівні.")
+# 2
+stat_past, p_past = stats.normaltest(df["YouthUnemployment"])
+stat_now, p_now = stats.normaltest(df["YouthUnemploy10"])
+print(f"Перевірка нормальності безробіття молодих чоловіків (10 років тому):
+statistic={stat_past}, p-value={p_past}")
+print(f"Перевірка нормальності безробіття молодих чоловіків (зараз):
+statistic={stat_now}, p-value={p_now}")
+alpha = 0.05
+if p_past < alpha:
+print("Висновок: Дані про безробіття молодих чоловіків 10 років тому НЕ
+мають нормального розподілу.")
+else:
+print("Висновок: Дані про безробіття молодих чоловіків 10 років тому
+мають нормальний розподіл.")
+if p_now < alpha:
+print("Висновок: Дані про безробіття молодих чоловіків зараз НЕ мають
+нормального розподілу.")
+else:
+print("Висновок: Дані про безробіття молодих чоловіків зараз мають
+нормальний розподіл.")
+# 3
+t_stat, t_p = stats.ttest_rel(df["MatureUnemployment"],
+df["MatureUnemploy10"], alternative='greater')
+print(f"Парний t-тест для безробіття чоловіків 25-39 років:
+statistic={t_stat}, p-value={t_p}")
+if t_p < alpha:
+print("Висновок: Є статистично значущі докази, що рівень безробіття
+чоловіків 25-39 років зменшився за 10 років.")
+else:
+print("Висновок: Немає достатньо доказів, що рівень безробіття чоловіків
+25-39 років зменшився за 10 років.")
+# 4
+corr, p_corr = stats.pearsonr(df["CrimeRate"], df["BelowWage10"])
+print(f"Кореляція між рівнем злочинності та кількістю бідних сімей:
+коефіцієнт={corr}, p-value={p_corr}")
+if p_corr < alpha:
+print("Висновок: Є статистично значущий зв’язок між рівнем злочинності
+та кількістю бідних сімей.")
+if corr > 0:
+print("Чим більше бідних сімей, тим вищий рівень злочинності.")
+else:
+print("Чим більше бідних сімей, тим нижчий рівень злочинності
+(негативна кореляція).")
+else:
+print("Висновок: Немає статистично значущого зв’язку між рівнем
+злочинності та кількістю бідних сімей.")
