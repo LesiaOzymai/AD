@@ -1,0 +1,184 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split, GridSearchCV,
+cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.linear_model import Ridge
+from sklearn.ensemble import RandomForestRegressor,
+GradientBoostingRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import mean_squared_error, r2_score,
+mean_absolute_error, explained_variance_score
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, davies_bouldin_score,
+calinski_harabasz_score
+from sklearn.decomposition import PCA
+
+import warnings
+warnings.filterwarnings('ignore')
+
+try:
+data = pd.read_csv('crime.csv') # Завантаження датасету
+except FileNotFoundError:
+raise FileNotFoundError("Файл crime.csv не знайдено")
+
+if 'Unnamed: 0' in data.columns:
+data = data.drop('Unnamed: 0', axis=1)
+
+# Перевірка наявності всіх потрібних стовпців
+required_columns = ['CrimeRate', 'Youth', 'Southern', 'Education',
+'ExpenditureYear0',
+'LabourForce', 'Males', 'MoreMales', 'StateSize',
+'YouthUnemployment',
+'MatureUnemployment', 'HighYouthUnemploy', 'Wage',
+'BelowWage']
+missing_cols = [col for col in required_columns if col not in data.columns]
+if missing_cols:
+raise ValueError(f"Відсутні обов'язкові стовпці: {missing_cols}")
+
+# Заповнення пропущених значень середнім по кожному числовому стовпцю
+data.fillna(data.mean(numeric_only=True), inplace=True)
+
+# 2. Формування цільової змінної (CrimeRate) та ознак
+target_column = 'CrimeRate'
+y = data[target_column]
+features = [
+'Youth', 'Southern', 'Education', 'ExpenditureYear0',
+'LabourForce', 'Males', 'MoreMales', 'StateSize',
+'YouthUnemployment', 'MatureUnemployment', 'HighYouthUnemploy',
+
+'Wage', 'BelowWage'
+]
+X = data[features]
+
+# 3. Розбиття на тренувальний та тестовий набори
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
+random_state=42)
+
+# 4. Створення моделей з pipeline (масштабування, вибір ознак, модель)
+models = {
+'Ridge Regression': Pipeline([
+('scaler', StandardScaler()), # Масштабування
+('feature_selection', SelectKBest(score_func=f_regression, k=8)), #
+Вибір 8 найкращих ознак
+('regressor', Ridge(alpha=1.0)) # Лінійна регресія з регуляризацією
+]),
+'Random Forest': Pipeline([
+('scaler', StandardScaler()),
+('regressor', RandomForestRegressor(n_estimators=100,
+random_state=42)) # Випадковий ліс
+]),
+'Gradient Boosting': Pipeline([
+('scaler', StandardScaler()),
+('feature_selection', SelectKBest(score_func=f_regression, k=10)),
+('regressor', GradientBoostingRegressor(random_state=42)) #
+Градієнтний бустінг
+])
+}
+
+print("Результати регресійних моделей:")
+best_model = None
+best_r2 = -np.inf # для пошуку найкращої моделі
+
+# Оцінювання кожної моделі на тестових даних
+for name, model in models.items():
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+# Обчислення метрик
+r2 = r2_score(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+mae = mean_absolute_error(y_test, y_pred)
+evs = explained_variance_score(y_test, y_pred)
+cv_r2 = np.mean(cross_val_score(model, X, y, cv=5, scoring='r2')) #
+Крос-валідація
+
+# Вивід результатів
+print(f"\n{name}:")
+print(f"R2 Score: {r2:.4f}")
+print(f"MSE: {mse:.4f}")
+print(f"RMSE: {rmse:.4f}")
+print(f"MAE: {mae:.4f}")
+print(f"Explained Variance: {evs:.4f}")
+print(f"CV R2 Score (5-fold): {cv_r2:.4f}")
+
+# Збереження найкращої моделі
+if r2 > best_r2:
+best_r2 = r2
+best_model = model
+
+# 5. Підбір гіперпараметрів для Gradient Boosting через GridSearchCV
+param_grid = {
+'feature_selection__k': [8, 10, 12], # Кількість ознак
+'regressor__n_estimators': [100, 200], # Кількість дерев
+
+'regressor__learning_rate': [0.05, 0.1], # Швидкість навчання
+'regressor__max_depth': [3, 5] # Глибина дерев
+}
+
+grid_search = GridSearchCV(models['Gradient Boosting'], param_grid, cv=5,
+scoring='r2', n_jobs=-1)
+grid_search.fit(X_train, y_train)
+
+print("\nНайкращі параметри для Gradient Boosting:")
+print(grid_search.best_params_)
+print(f"Найкращий R2 Score: {grid_search.best_score_:.4f}")
+
+# 6. Кластеризація
+cluster_features = [
+'CrimeRate', 'Youth', 'Education', 'ExpenditureYear0',
+'YouthUnemployment', 'Wage', 'Southern'
+]
+
+X_cluster = data[cluster_features]
+
+# Масштабування даних для кластеризації
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X_cluster)
+
+# Визначення оптимальної кількості кластерів через Silhouette Score
+silhouette_scores = []
+k_range = range(2, 11)
+
+for k in k_range:
+kmeans = KMeans(n_clusters=k, random_state=42)
+kmeans.fit(X_scaled)
+silhouette_scores.append(silhouette_score(X_scaled, kmeans.labels_))
+
+# Вибір кількості кластерів з найвищим Silhouette Score
+optimal_clusters = np.argmax(silhouette_scores) + 2
+print(f"\nОптимальна кількість кластерів: {optimal_clusters}")
+
+# Остаточна кластеризація
+kmeans = KMeans(n_clusters=optimal_clusters, random_state=42)
+clusters = kmeans.fit_predict(X_scaled)
+
+# Оцінювання якості кластеризації
+print(f"Silhouette Score: {silhouette_score(X_scaled, clusters):.4f}")
+print(f"Davies-Bouldin Index: {davies_bouldin_score(X_scaled,
+clusters):.4f}")
+print(f"Calinski-Harabasz Score: {calinski_harabasz_score(X_scaled,
+clusters):.4f}")
+
+# 7. Візуалізація кластерів через зменшення розмірності методом PCA
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+plt.figure(figsize=(10, 8))
+sns.scatterplot(x=X_pca[:, 0], y=X_pca[:, 1], hue=clusters,
+palette=‘rocket', style=data['Southern'], s=100)
+plt.title('Візуалізація кластерів (PCA)')
+plt.xlabel('Перша головна компонента')
+plt.ylabel('Друга головна компонента')
+plt.legend(title='Cluster/Southern')
+plt.tight_layout()
+plt.savefig('clusters_visualization.png')
+plt.close()
+
+print("\nАналіз завершено. Результати візуалізації збережено у файлі
+clusters_visualization.png")
