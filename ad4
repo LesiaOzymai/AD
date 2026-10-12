@@ -1,0 +1,68 @@
+import matplotlib
+matplotlib.use('TkAgg')
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+file_path = "StudentsPerformance.csv"
+df = pd.read_csv(file_path)
+# Стовпчикові діаграми
+plt.figure(figsize=(12, 5))
+sns.countplot(x='parental level of education', data=df)
+plt.xticks(rotation=45)
+plt.title('Кількість учнів за рівнем освіти батьків')
+plt.show()
+plt.figure(figsize=(12, 5))
+sns.barplot(x='parental level of education', y='writing score', data=df,
+estimator=min)
+plt.xticks(rotation=45)
+plt.title('Мінімальні бали за письмо залежно від освіти батьків')
+plt.show()
+plt.figure(figsize=(12, 5))
+sns.barplot(x='parental level of education', y='reading score', hue='test
+preparation course', data=df, estimator=np.mean)
+plt.xticks(rotation=45)
+plt.title('Середні бали за читання в залежності від освіти батьків і
+підготовки')
+plt.show()
+# Гістограми балів за математику
+plt.figure(figsize=(12, 5))
+sns.histplot(df['math score'], bins=10, kde=True)
+plt.title('Гістограма балів за математику')
+plt.show()
+plt.figure(figsize=(12, 5))
+sns.histplot(df, x='math score', hue='lunch', bins=10, kde=True)
+plt.title('Гістограма балів за математику з урахуванням типу обіду')
+plt.show()
+# Діаграма розмаху для балів за читання
+plt.figure(figsize=(12, 5))
+sns.boxplot(x=df['reading score'])
+plt.title('Діаграма розмаху балів за читання')
+plt.show()
+plt.figure(figsize=(12, 5))
+sns.boxplot(x='race/ethnicity', y='reading score', data=df)
+plt.xticks(rotation=45)
+plt.title('Діаграма розмаху балів за читання в залежності від раси/етносу')
+plt.show()
+# Діаграми розсіювання
+plt.figure(figsize=(12, 5))
+sns.scatterplot(data=df, x="writing score", y="math score")
+plt.title('Діаграма розсіювання: Бали за письмо vs Бали за математику')
+plt.show()
+plt.figure(figsize=(12, 5))
+sns.scatterplot(data=df, x="reading score", y="math score")
+plt.title('Діаграма розсіювання: Бали за читання vs Бали за математику')
+plt.show()
+# Обчислення коефіцієнтів кореляції
+corr_writing_math = df['writing score'].corr(df['math score'])
+corr_reading_math = df['reading score'].corr(df['math score'])
+print(f"Коефіцієнт кореляції між балами за письмо і математику:
+{corr_writing_math:.2f}")
+print(f"Коефіцієнт кореляції між балами за читання і математику:
+{corr_reading_math:.2f}")
+# Теплокарта кореляції
+plt.figure(figsize=(8, 6))
+sns.heatmap(df[['math score', 'reading score', 'writing score']].corr(),
+annot=True, cmap="coolwarm", fmt=".2f")
+plt.title('Теплокарта кореляції між балами за предметами')
+plt.show()
