@@ -1,0 +1,64 @@
+import pandas as pd
+
+# Читання HTML-файлу
+tables = pd.read_html("Version 12.html")
+df = tables[0]
+
+# Перейменування стовпців (українською)
+new_column_names = [
+'Вид',
+'Острів',
+'Довжина_дзьоба_мм',
+'Висота_дзьоба_мм',
+'Довжина_ласта_мм',
+'Маса_тіла_г',
+'Стать'
+]
+df.columns = new_column_names
+print("Нові назви стовпців:")
+print(df.columns)
+
+# Перевірка типів даних
+print("\nТипи даних до обробки:")
+
+print(df.dtypes)
+
+# Обробка пропущених значень
+df['Довжина_дзьоба_мм'] =
+df['Довжина_дзьоба_мм'].fillna(df['Довжина_дзьоба_мм'].median())
+df['Висота_дзьоба_мм'] =
+df['Висота_дзьоба_мм'].fillna(df['Висота_дзьоба_мм'].median())
+df['Довжина_ласта_мм'] =
+df['Довжина_ласта_мм'].fillna(df['Довжина_ласта_мм'].median())
+df['Маса_тіла_г'] = df['Маса_тіла_г'].fillna(df['Маса_тіла_г'].mean())
+df['Стать'] = df['Стать'].fillna('Невідомо')
+print("\nТипи даних після обробки:")
+print(df.dtypes)
+
+# Перевірка на пропущені значення
+print("\nКількість пропущених значень після заповнення:")
+print(df.isnull().sum())
+
+# Виявлення та обробка дублікатів
+duplicates = df.duplicated()
+print(f"\nКількість дублікатів: {duplicates.sum()}")
+if duplicates.sum() > 0:
+print("\nПриклади дублікатів:")
+print(df[df.duplicated(keep=False)].head(6))
+df = df.drop_duplicates()
+print(f"\nДублікати видалено. Залишено {len(df)} унікальних записів.")
+
+# Статистичний аналіз
+print("\nОпис статистичних характеристик числових даних:")
+print(df.describe())
+print("\nЧастота унікальних значень за видами:")
+print(df['Вид'].value_counts())
+print("\nЧастота унікальних значень за островами:")
+
+print(df['Острів'].value_counts())
+print("\nРозподіл за статтю:")
+print(df['Стать'].value_counts())
+
+# Збереження даних
+df.to_csv("cleaned_penguins_data.csv", index=False, encoding='utf-8')
+print("\nОброблені дані збережено у файл cleaned_penguins_data.csv")
