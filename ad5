@@ -1,0 +1,77 @@
+import pandas as pd
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+df = pd.read_csv('Microsoft_Stock.csv')
+df['Date'] = pd.to_datetime(df['Date'])
+df.set_index('Date', inplace=True)
+
+# Графіки об’єму продаж
+# а) загальний
+df['Volume'].plot(title='Загальний обсяг продажів', figsize=(12, 5))
+plt.ylabel('Обсяг продажів')
+plt.grid(True)
+plt.show()
+# б) 2019 рік
+df['Volume'].loc['2019'].plot(title='Обсяг продажів за 2019 рік',
+figsize=(12, 5), color='orange')
+plt.ylabel('Обсяг продажів')
+plt.grid(True)
+
+plt.show()
+# в) січень 2020 року
+df['Volume'].loc['2020-01'].plot(title='Обсяг продажів за січень 2020 року',
+figsize=(10, 4), color='green')
+plt.ylabel('Обсяг продажів')
+plt.grid(True)
+plt.show()
+# г) 22 листопада 2019 - серпень 2020
+df['Volume'].loc['2019-11-22':'2020-08'].plot(title='Обсяг продажів з
+22.11.2019 до 08.2020', figsize=(12, 5), color='purple')
+plt.ylabel('Обсяг продажів')
+plt.grid(True)
+plt.show()
+# д) За 2016 та 2017 на одному графіку
+volume_2016 = df['Volume'].loc['2016']
+volume_2017 = df['Volume'].loc['2017']
+plt.figure(figsize=(12, 5))
+volume_2016.plot(label='2016', color='blue')
+volume_2017.plot(label='2017', color='red')
+plt.title('Обсяг продажів за 2016 і 2017 роки')
+plt.ylabel('Обсяг продажів')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Аналіз ціни закриття
+# а) середня ціна за 2019 рік
+mean_2019 = df['Close'].loc['2019'].mean()
+print(f"Середня ціна закриття за 2019 рік: {mean_2019:.2f}")
+# б) середня ціна за кожен місяць
+monthly_avg = df['Close'].resample('ME').mean()
+print("Середня ціна закриття за кожен місяць:")
+print(monthly_avg)
+
+# в) кожні два тижні літа та осені 2020 року
+summer_autumn_2020 = df['Close'].loc['2020-06-01':'2020-11-30']
+biweekly_avg = summer_autumn_2020.resample('2W').mean()
+print("Середня ціна закриття кожні 2 тижні літа й осені 2020:")
+print(biweekly_avg)
+# г) зміни ціни у відсотках за кожен день у 2018 році
+df_2018 = df['Close'].loc['2018']
+pct_change_2018 = df_2018.pct_change() * 100
+pct_change_2018.plot(title='Щоденні зміни ціни у % (2018)', figsize=(12, 5),
+color='teal')
+plt.ylabel('Зміна %')
+plt.grid(True)
+plt.show()
+# д) ковзне середнє ціни за 2020 рік з вікном у місяць
+df_2020 = df['Close'].loc['2020']
+rolling_mean = df_2020.rolling('30D').mean()
+plt.figure(figsize=(12, 5))
+df_2020.plot(label='Ціна закриття', alpha=0.5)
+rolling_mean.plot(label='Ковзне середнє (30 днів)', color='red')
+plt.title('Ковзне середнє ціни закриття за 2020 рік')
+plt.legend()
+plt.grid(True)
+plt.show()
