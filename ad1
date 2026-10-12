@@ -1,0 +1,77 @@
+import numpy as np
+a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=int)
+b = np.array([1, 2, 3, 4], dtype=float)
+c = np.arange(1, 12, 2)
+d = np.ones((2, 9), dtype=int)
+e = np.zeros(9, dtype=int)
+f = np.linspace(0, 2, 5)
+g = np.random.random((3, 2))
+i = np.random.normal(1, 10, size=(2, 5))
+k = np.random.randint(0, 100, (4, 4))
+j = np.empty(5)
+print("a:\n", a)
+print(f"\nshape a: {a.shape}")
+#zmina index na negat - z kincya
+print(f"\nindex a[0,0]: {a[0,0]}")
+print(f"\nindex -a[0,-1]: {a[0,-1]}")
+print(f"\nsubarray a[1:, :2]:\n{a[1:, :2]}\n")
+print("b:\n", b, "\n")
+print("c:\n", c, "\n")
+print("d:\n", d, "\n")
+print("e:\n", e, "\n")
+print("f:\n", f, "\n")
+print("g:\n", g, "\n")
+print("i:\n", i, "\n")
+print("k:\n", k, "\n")
+print("j:\n", j, "\n")
+arr1 = np.array([[2, 2, 3], [4, 4, 6], [7, 7, 9]], dtype=int)
+arr2 = np.array([[2, 3, 3], [4, 6, 6], [7, 9, 9]], dtype=int)
+vec1 = np.array([[2, 2, 3]], dtype=int)
+vec2 = np.array([[-2, 3, 3]], dtype=int)
+#arefmet
+print("Addi0on +:\n", np.add(arr1, arr2))
+print("Subtrac0on -:\n", np.subtract(arr1, arr2))
+print("Mul0plica0on *:\n", np.mulSply(arr1, arr2))
+print("Division /:\n", np.divide(vec1, vec2))
+print("Power **:\n", np.power(vec1, 2))
+print("Module:\n", np.mod(vec1, vec2))
+print("Nega0ve:\n", np.negaSve(arr1))
+#ctovbci
+print("Reduce sum:\n", np.add.reduce(arr1))
+#dod vidpov elem
+print("Accumulate sum:\n", np.add.accumulate(arr1))
+#kozn elem
+print("Outer product:\n", np.mulSply.outer(vec1, vec2),"\n" )
+#staSc
+print("Min:", np.min(vec1))
+print("Max:", np.max(vec2))
+print("Mean:", np.mean(arr1))
+print("Median:", np.median(arr1), "\n")
+print("----------------------------------------------------------------")
+
+
+import pandas as pd
+m = pd.Series([1,2,3,4])
+print("m:\n", m, "\n")
+n = pd.Series([1, 2, 3, 4],index=['I', 'II', 'III', 'IV'])
+print("n:\n", n, "\n")
+o = pd.Series(['2', '8', '16', '20'], index=[1, 4, 5, 10])
+print("o:\n", o, "\n")
+print("o.loc:\n", o.loc[5], "\n")
+print("o.iloc:\n", o.iloc[2], "\n")
+ll= pd.Series([2,3,4,5])
+kk= pd.Series([6,7,8,9])
+frame = pd.DataFrame({'ll':ll, "kk":kk})
+print(frame.describe())
+
+
+import pandas as pd
+data = pd.read_csv('Laptop-Users.csv')
+print(data)
+print( "\n", data.describe())
+data2 = data[(data.Gender == "female") & (data.Region == "countryside") & (data.Income > 10000)]
+print( "\n", data2)
+print("\n amount:", len(data2), "\n")
+data['Adult'] = data['Age'].apply(lambda age: 'yes' if age > 18 else 'no')
+print(data)
+#data.to_csv('Laptop-Users.csv')
